@@ -5,6 +5,14 @@ Puppet::Type.type(:munki_package).provide(:munki) do
 
   def exists?
     system "/usr/local/munki/munki_do.py --checkstate #{resource[:name]} --catalog #{resource[:catalog]}"
+    exit_code = $?.exitstatus
+    if exit_code == 0
+      return true
+    elsif exit_code == 1
+      return false
+    else
+      raise Puppet::Error, "Failed to check state of #{resource[:name]} - exit code #{exit_code}"
+    end
   end
 
   def create
