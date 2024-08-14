@@ -17,6 +17,7 @@
 """
 munki_do
 """
+import datetime
 import optparse
 import os
 import tempfile
@@ -30,12 +31,15 @@ from munkilib import installer
 from munkilib import munkicommon
 from munkilib import reports
 
-# pylint: disable=E0611
-from Foundation import NSDate
-# pylint: enable=E0611
+
+
+def get_formatted_date():
+    now = datetime.datetime.now(datetime.timezone.utc)
+    formatted_date = now.strftime('%Y-%m-%d %H:%M:%S %z')
+    return formatted_date
 
 def write_report():
-    reports.report['StartTime'] = NSDate.new()
+    reports.report['StartTime'] = get_formatted_date()
     reports.report['RunType'] = "custom"
     reports.savereport()
 
