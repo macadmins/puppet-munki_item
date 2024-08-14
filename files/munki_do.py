@@ -28,54 +28,65 @@ from munkilib import FoundationPlist
 from munkilib import updatecheck
 from munkilib import installer
 from munkilib import munkicommon
+from munkilib import reports
 
-p = optparse.OptionParser()
-p.add_option('--catalog', '-c', action="append",
+# pylint: disable=E0611
+from Foundation import NSDate
+# pylint: enable=E0611
+
+def write_report():
+    reports.report['StartTime'] = NSDate.new()
+    reports.report['RunType'] = "custom"
+    reports.savereport()
+
+def main():
+    p = optparse.OptionParser()
+    p.add_option('--catalog', '-c', action="append",
            help='Which catalog to consult. May be specified multiple times.')
-p.add_option('--install', '-i', action="append",
+    p.add_option('--install', '-i', action="append",
            help='An item to install. May be specified multiple times.')
-p.add_option('--uninstall', '-u', action="append",
+    p.add_option('--uninstall', '-u', action="append",
            help='An item to uninstall. May be specified multiple times.')
-p.add_option('--checkstate', action="append",
+    p.add_option('--checkstate', action="append",
            help='Check the state of an item. May be specified multiple times.')
 
-options, arguments = p.parse_args()
-cataloglist = options.catalog or ['production']
+    options, arguments = p.parse_args()
+    cataloglist = options.catalog or ['production']
 
-if options.checkstate:
-   updatecheck.MACHINE = munkicommon.getMachineFacts()
-   updatecheck.CONDITIONS = munkicommon.get_conditions()
-   updatecheck.catalogs.get_catalogs(cataloglist)
-   for check_item in options.checkstate:
-       installed_state = 'unknown'
-       exit_code = 2
-       item_pl = updatecheck.catalogs.get_item_detail(check_item, cataloglist)
-       if item_pl:
-           if updatecheck.installationstate.installed_state(item_pl):
-               installed_state = "installed"
-               exit_code = 0
-           else:
-               installed_state = "not installed"
-               exit_code = 1
-       print("%s: %s" % (check_item, installed_state))
-       sys.exit(exit_code)
+    if options.checkstate:
+        updatecheck.MACHINE = munkicommon.getMachineFacts()
+        updatecheck.CONDITIONS = munkicommon.get_conditions()
+        updatecheck.catalogs.get_catalogs(cataloglist)
+        for check_item in options.checkstate:
+            installed_state = 'unknown'
+            exit_code = 2
+            item_pl = updatecheck.catalogs.get_item_detail(check_item, cataloglist)
+            if item_pl:
+                if updatecheck.installationstate.installed_state(item_pl):
+                    installed_state = "installed"
+                    exit_code = 0
+                else:
+                    installed_state = "not installed"
+                    exit_code = 1
+            print("%s: %s" % (check_item, installed_state))
+            sys.exit(exit_code)
 
-if not options.install and not options.uninstall:
-   sys.exit()
+    if not options.install and not options.uninstall:
+        sys.exit()
 
-manifest = {}
-manifest['catalogs'] = cataloglist
-manifest['managed_installs'] = options.install or []
-manifest['managed_uninstalls'] = options.uninstall or []
-with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-    temp_filename = temp_file.name
+    manifest = {}
+    manifest['catalogs'] = cataloglist
+    manifest['managed_installs'] = options.install or []
+    manifest['managed_uninstalls'] = options.uninstall or []
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_filename = temp_file.name
 
-FoundationPlist.writePlist(manifest, temp_filename)
-munkicommon.report['ManifestName'] = 'munki_do_localmanifest'
-updatecheckresult = updatecheck.check( 
-    localmanifestpath=temp_filename) 
-if updatecheckresult == 1: 
-  need_to_restart = installer.run() 
-  if need_to_restart: 
-    print("Please restart immediately!")
-os.remove(temp_filename)
+    FoundationPlist.writePlist(manifest, temp_filename)
+    munkicommon.report['ManifestName'] = 'munki_do_localmanifest'
+    updatecheckresult = updatecheck.check( 
+        localmanifestpath=temp_filename) 
+    if updatecheckresult == 1: 
+        need_to_restart = installer.run() 
+        if need_to_restart: 
+            print("Please restart immediately!")
+    os.remove(temp_filename)
