@@ -48,10 +48,7 @@ if options.checkstate:
    updatecheck.catalogs.get_catalogs(cataloglist)
    for check_item in options.checkstate:
        installed_state = 'unknown'
-       print(check_item)
-       print(cataloglist)
        item_pl = updatecheck.catalogs.get_item_detail(check_item, cataloglist)
-       print(item_pl)
        if item_pl:
            if updatecheck.installationstate.installed_state(item_pl):
                installed_state = "installed"
