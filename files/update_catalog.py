@@ -15,7 +15,6 @@ def main():
     cataloglist = options.catalog or ['production']
     updatecheck.MACHINE = munkicommon.getMachineFacts()
     updatecheck.CONDITIONS = munkicommon.get_conditions()
-    print("Updating catalogs...")
     updatecheck.catalogs.get_catalogs(cataloglist)
 
 if __name__ == '__main__':

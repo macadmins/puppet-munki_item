@@ -16,7 +16,10 @@ class munki_item {
   }
 
   exec { 'update_munki_catalog':
-    command => '/usr/local/munki/update_catalog.sh',
-    require => File['/usr/local/munki/update_catalog.sh'],
+    command     => '/usr/local/munki/update_catalog.sh',
+    logoutput   => false,
+    refreshonly => false,
+    unless      => '/bin/true',
+    require     => File['/usr/local/munki/update_catalog.sh'],
   }
 }
