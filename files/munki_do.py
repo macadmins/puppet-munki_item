@@ -54,6 +54,7 @@ def main():
     cataloglist = options.catalog or ['production']
 
     if options.checkstate:
+        write_report()
         updatecheck.MACHINE = munkicommon.getMachineFacts()
         updatecheck.CONDITIONS = munkicommon.get_conditions()
         updatecheck.catalogs.get_catalogs(cataloglist)
@@ -73,7 +74,7 @@ def main():
 
     if not options.install and not options.uninstall:
         sys.exit()
-
+    write_report()
     manifest = {}
     manifest['catalogs'] = cataloglist
     manifest['managed_installs'] = options.install or []
@@ -90,3 +91,6 @@ def main():
         if need_to_restart: 
             print("Please restart immediately!")
     os.remove(temp_filename)
+
+if __name__ == '__main__':
+    main()
