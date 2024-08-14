@@ -19,10 +19,6 @@ Puppet::Type.newtype(:munki_package) do
      desc 'The catalog from which we will get the package'
      defaultto 'production'
   end
-  newproperty(:version) do
-    desc 'The version of the package to install'
-    newvalues(/^\w+$/)
-  end
 end
 
 

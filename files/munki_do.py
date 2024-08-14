@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/local/munki/munki-python
 # encoding: utf-8
 #
-# Copyright 2009-2012 Greg Neagle.
+# Copyright 2009-2024 Greg Neagle.
 #
 # Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@
 munki_do
 """
 import optparse
-import subprocess
+import os
+import tempfile
 import sys
 
 from munkilib import FoundationPlist
@@ -41,32 +42,37 @@ cataloglist = options.catalog or ['production']
 
 if options.checkstate:
    updatecheck.MACHINE = munkicommon.getMachineFacts()
-   updatecheck.CONDITIONS = munkicommon.getConditions()
-   updatecheck.getCatalogs(cataloglist)
+   updatecheck.CONDITIONS = munkicommon.get_conditions()
+   updatecheck.catalogs.get_catalogs(cataloglist)
    for check_item in options.checkstate:
        installed_state = 'unknown'
-       item_pl = updatecheck.getItemDetail(check_item, cataloglist)
+       item_pl = updatecheck.catalogs.get_item_detail(check_item, cataloglist)
        if item_pl:
-           if updatecheck.installedState(item_pl):
+           if updatecheck.installationstate.installed_state(item_pl):
                installed_state = "installed"
                exit_code = 0
            else:
                installed_state = "not installed"
                exit_code = 1
-       print "%s: %s" % (check_item, installed_state)
-       exit(exit_code)
+       print("%s: %s" % (check_item, installed_state))
+       sys.exit(exit_code)
 
 if not options.install and not options.uninstall:
-   exit()
+   sys.exit()
 
 manifest = {}
 manifest['catalogs'] = cataloglist
-manifest['managed_installs'] = options.install or [] 
-manifest['managed_uninstalls'] = options.uninstall or [] 
-FoundationPlist.writePlist(manifest, '/tmp/localmanifest.plist') 
+manifest['managed_installs'] = options.install or []
+manifest['managed_uninstalls'] = options.uninstall or []
+with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+    temp_filename = temp_file.name
+
+FoundationPlist.writePlist(manifest, temp_filename)
+munkicommon.report['ManifestName'] = 'munki_do_localmanifest'
 updatecheckresult = updatecheck.check( 
-    localmanifestpath='/tmp/localmanifest.plist') 
+    localmanifestpath=temp_filename) 
 if updatecheckresult == 1: 
   need_to_restart = installer.run() 
   if need_to_restart: 
-    print "Please restart immediately!" 
+    print("Please restart immediately!")
+os.remove(temp_filename)

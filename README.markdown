@@ -1,16 +1,28 @@
-## Puppet-munki Module
+# Puppet-munki_item Module
 
-This was more of a dare than anything.  Greg came up with 'munki\_do.py' that will interact with a Munki server.  This module was a response to that.  A couple of notes:
+This module provides a defined type for managing items in a Munki repository. The item must be available to the device in the specified catalog for this to work. 
 
-1. This is not ideal. I've created a custom type called 'munki\_package' only because I didn't want to Monkeypatch the existing 'package' type in a module.  Treat this solely as a "See? It works" prototype.
-2. See note 1.
+### Usage
 
-To use it, you will need to include the puppet-munki class that will create /usr/local/munki/munki\_do.py, and then declare a Munki package like so:
+```puppet
 
-    munki_package { 'Firefox':
-      ensure  => present,
-      catalog => 'production',
-    }
 
-Godspeed.
+munki_item::item { 'Firefox':
+  ensure  => 'present',
+  catalog => 'production,
+}
+```
 
+## Parameters
+
+* `name`: The name of the item to manage (this is also the name variabke for the resource).
+* `ensure`: Whether the item should be present or absent. Default: `present`.
+* `catalog`: The catalog to which the item should be retrieved from. Default: `production`.
+
+## To Do
+
+* Add in some more checks to ensure Munki is present and configured before attempoting to install items.
+
+## Credits
+
+The `munki_do.py` script is graciously provided by Greg Neagle and the Munki project.
