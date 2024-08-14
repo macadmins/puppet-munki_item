@@ -8,6 +8,6 @@ define munki_item::item (
   munki_package { $name:
     ensure  => $ensure,
     catalog => $catalog,
-    require => File['/usr/local/munki/munki_do.py'],
+    require => [File['/usr/local/munki/munki_do.py'], Exec['update_munki_catalog']],
   }
 }

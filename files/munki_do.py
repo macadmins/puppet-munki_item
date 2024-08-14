@@ -61,19 +61,16 @@ def main():
         write_report()
         updatecheck.MACHINE = munkicommon.getMachineFacts()
         updatecheck.CONDITIONS = munkicommon.get_conditions()
-        updatecheck.catalogs.get_catalogs(cataloglist)
+        if cataloglist != ['production']:
+            updatecheck.catalogs.get_catalogs(cataloglist)
         for check_item in options.checkstate:
-            installed_state = 'unknown'
             exit_code = 2
             item_pl = updatecheck.catalogs.get_item_detail(check_item, cataloglist)
             if item_pl:
                 if updatecheck.installationstate.installed_state(item_pl):
-                    installed_state = "installed"
                     exit_code = 0
                 else:
-                    installed_state = "not installed"
                     exit_code = 1
-            print("%s: %s" % (check_item, installed_state))
             sys.exit(exit_code)
 
     if not options.install and not options.uninstall:
