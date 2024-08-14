@@ -10,6 +10,8 @@ Puppet::Type.type(:munki_package).provide(:munki) do
       return true
     elsif exit_code == 1
       return false
+    elsif exit_code == 2
+      raise Puppet::Error, "Failed to check state of #{resource[:name]} - package not found"
     else
       raise Puppet::Error, "Failed to check state of #{resource[:name]} - exit code #{exit_code}"
     end
