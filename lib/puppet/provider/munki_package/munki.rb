@@ -8,10 +8,14 @@ Puppet::Type.type(:munki_package).provide(:munki) do
   end
 
   def create
-    munki_do('--install', resource[:name], '--catalog', resource[:catalog])
+    unless munki_do('--install', resource[:name], '--catalog', resource[:catalog])
+      raise Puppet::Error, "Failed to install #{resource[:name]}"
+    end
   end
 
   def destroy
-    munki_do('--uninstall', resource[:name], '--catalog', resource[:catalog])
+    unless munki_do('--uninstall', resource[:name], '--catalog', resource[:catalog])
+      raise Puppet::Error, "Failed to uninstall #{resource[:name]}"
+    end
   end
 end
