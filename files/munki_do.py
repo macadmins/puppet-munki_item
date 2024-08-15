@@ -17,7 +17,7 @@
 """
 munki_do
 """
-import datetime
+
 import optparse
 import os
 import tempfile
@@ -30,32 +30,6 @@ from munkilib import updatecheck
 from munkilib import installer
 from munkilib import munkicommon
 from munkilib import reports
-
-
-def write_report(old_report=None):
-    if old_report:
-        reports.report = old_report
-    reports.savereport()
-
-def write_last_check_time():
-    last_check_file = "/tmp/munki_do_last_check_time.json"
-    last_check_data = {"last_check": datetime.datetime.now().isoformat()}
-    FoundationPlist.writePlist(last_check_data, last_check_file)
-
-def read_last_check_time():
-    last_check_file = "/tmp/munki_do_last_check_time.json"
-    if os.path.exists(last_check_file):
-        last_check_data = FoundationPlist.readPlist(last_check_file)
-        return last_check_data.get("last_check")
-    return None
-
-def last_check_time_within_30_minutes():
-    last_check_time = read_last_check_time()
-    if last_check_time:
-        last_check_time = datetime.datetime.fromisoformat(last_check_time)
-        now = datetime.datetime.now()
-        return (now - last_check_time).seconds < 1800
-    return False
 
 def main():
     p = optparse.OptionParser()
@@ -86,10 +60,7 @@ def main():
     cataloglist = options.catalog or ["production"]
     updatecheck.MACHINE = munkicommon.getMachineFacts()
     updatecheck.CONDITIONS = munkicommon.get_conditions()
-    if not last_check_time_within_30_minutes():
-        print("Last check was within 30 minutes. Updating catalogs.")
-        updatecheck.catalogs.get_catalogs(cataloglist)
-        write_last_check_time()
+    updatecheck.catalogs.get_catalogs(cataloglist)
 
     report = reports.readreport()
     if options.checkstate:
