@@ -38,29 +38,6 @@ def write_report(old_report=None):
     reports.savereport()
 
 
-def catalogs_older_than_30_mins(cataloglist):
-    for catalog in cataloglist:
-        catalogpath = os.path.join(
-            munkicommon.pref("ManagedInstallDir"), "catalogs", catalog
-        )
-        if not os.path.exists(catalogpath):
-            print("Catalog %s does not exist." % catalog)
-            return True
-        try:
-            catalogstat = os.stat(catalogpath)
-        except OSError:
-            print("Could not stat %s." % catalogpath)
-            return True
-        catalogage = datetime.datetime.fromtimestamp(catalogstat.st_mtime)
-
-        diff = datetime.datetime.now() - catalogage
-        # return true if the catalog is older than 30 minutes
-        if diff.seconds > 1800:
-            print("Catalog %s is older than 30 minutes." % catalog)
-            return True
-    return False
-
-
 def main():
     p = optparse.OptionParser()
     p.add_option(
@@ -86,23 +63,11 @@ def main():
         action="append",
         help="Check the state of an item. May be specified multiple times.",
     )
-    p.add_option(
-        "--force-catalog-update",
-        type="string",
-        default="False",
-        help="Force a check of the catalogs before proceeding.",
-    )
-
     options, arguments = p.parse_args()
-    force_catalog_update = options.force_catalog_update.lower() == "true"
     cataloglist = options.catalog or ["production"]
     updatecheck.MACHINE = munkicommon.getMachineFacts()
     updatecheck.CONDITIONS = munkicommon.get_conditions()
-    if catalogs_older_than_30_mins(cataloglist) or force_catalog_update:
-        if force_catalog_update:
-            print("Forcing catalog update...")
-            
-        updatecheck.catalogs.get_catalogs(cataloglist)
+    updatecheck.catalogs.get_catalogs(cataloglist)
     report = reports.readreport()
     if options.checkstate:
         updatecheck.MACHINE = munkicommon.getMachineFacts()
