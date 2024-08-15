@@ -85,17 +85,18 @@ def main():
     )
     p.add_option(
         "--force-catalog-update",
-        "-f",
-        action="store_true",
+        type="string",
+        default="False",
         help="Force a check of the catalogs before proceeding.",
     )
 
     options, arguments = p.parse_args()
+    force_catalog_update = options.force_catalog_update.lower() == "true"
     cataloglist = options.catalog or ["production"]
     updatecheck.MACHINE = munkicommon.getMachineFacts()
     updatecheck.CONDITIONS = munkicommon.get_conditions()
-    if catalogs_older_than_30_mins(cataloglist) or options.force_catalog_update:
-        if options.force_catalog_update:
+    if catalogs_older_than_30_mins(cataloglist) or force_catalog_update:
+        if force_catalog_update:
             print("Forcing catalog update...")
         else:
             print("Catalogs are older than 30 minutes, updating...")
