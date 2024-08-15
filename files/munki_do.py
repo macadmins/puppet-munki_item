@@ -72,6 +72,10 @@ def main():
     updatecheck.MACHINE = munkicommon.getMachineFacts()
     updatecheck.CONDITIONS = munkicommon.get_conditions()
     if catalogs_older_than_30_mins(cataloglist) or options.force_catalog_update:
+        if options.force_catalog_update:
+            print("Forcing catalog update...")
+        else:
+            print("Catalogs are older than 30 minutes, updating...")
         updatecheck.catalogs.get_catalogs(cataloglist)
     report = reports.readreport()
     if options.checkstate:
