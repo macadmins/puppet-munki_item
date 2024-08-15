@@ -23,7 +23,7 @@ import os
 import tempfile
 import sys
 
-sys.path.append('/usr/local/munki')
+sys.path.append("/usr/local/munki")
 
 from munkilib import FoundationPlist
 from munkilib import updatecheck
@@ -37,9 +37,12 @@ def write_report(old_report=None):
         reports.report = old_report
     reports.savereport()
 
+
 def catalogs_older_than_30_mins(cataloglist):
     for catalog in cataloglist:
-        catalogpath = os.path.join(munkicommon.pref('ManagedInstallDir'), 'catalogs', catalog)
+        catalogpath = os.path.join(
+            munkicommon.pref("ManagedInstallDir"), "catalogs", catalog
+        )
         if not os.path.exists(catalogpath):
             return True
         try:
@@ -54,21 +57,41 @@ def catalogs_older_than_30_mins(cataloglist):
             return True
     return False
 
+
 def main():
     p = optparse.OptionParser()
-    p.add_option('--catalog', '-c', action="append",
-           help='Which catalog to consult. May be specified multiple times.')
-    p.add_option('--install', '-i', action="append",
-           help='An item to install. May be specified multiple times.')
-    p.add_option('--uninstall', '-u', action="append",
-           help='An item to uninstall. May be specified multiple times.')
-    p.add_option('--checkstate', action="append",
-           help='Check the state of an item. May be specified multiple times.')
-    p.add_option('--force-catalog-update', '-f', action="store_true",
-              help='Force a check of the catalogs before proceeding.')
+    p.add_option(
+        "--catalog",
+        "-c",
+        action="append",
+        help="Which catalog to consult. May be specified multiple times.",
+    )
+    p.add_option(
+        "--install",
+        "-i",
+        action="append",
+        help="An item to install. May be specified multiple times.",
+    )
+    p.add_option(
+        "--uninstall",
+        "-u",
+        action="append",
+        help="An item to uninstall. May be specified multiple times.",
+    )
+    p.add_option(
+        "--checkstate",
+        action="append",
+        help="Check the state of an item. May be specified multiple times.",
+    )
+    p.add_option(
+        "--force-catalog-update",
+        "-f",
+        action="store_true",
+        help="Force a check of the catalogs before proceeding.",
+    )
 
     options, arguments = p.parse_args()
-    cataloglist = options.catalog or ['production']
+    cataloglist = options.catalog or ["production"]
     updatecheck.MACHINE = munkicommon.getMachineFacts()
     updatecheck.CONDITIONS = munkicommon.get_conditions()
     if catalogs_older_than_30_mins(cataloglist) or options.force_catalog_update:
@@ -81,7 +104,7 @@ def main():
     if options.checkstate:
         updatecheck.MACHINE = munkicommon.getMachineFacts()
         updatecheck.CONDITIONS = munkicommon.get_conditions()
-        if cataloglist != ['production']:
+        if cataloglist != ["production"]:
             updatecheck.catalogs.get_catalogs(cataloglist)
         for check_item in options.checkstate:
             exit_code = 2
@@ -97,22 +120,22 @@ def main():
     if not options.install and not options.uninstall:
         sys.exit()
     manifest = {}
-    manifest['catalogs'] = cataloglist
-    manifest['managed_installs'] = options.install or []
-    manifest['managed_uninstalls'] = options.uninstall or []
+    manifest["catalogs"] = cataloglist
+    manifest["managed_installs"] = options.install or []
+    manifest["managed_uninstalls"] = options.uninstall or []
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         temp_filename = temp_file.name
 
     FoundationPlist.writePlist(manifest, temp_filename)
-    munkicommon.report['ManifestName'] = 'munki_do_localmanifest'
-    updatecheckresult = updatecheck.check( 
-        localmanifestpath=temp_filename) 
-    if updatecheckresult == 1: 
-        need_to_restart = installer.run() 
-        if need_to_restart: 
+    munkicommon.report["ManifestName"] = "munki_do_localmanifest"
+    updatecheckresult = updatecheck.check(localmanifestpath=temp_filename)
+    if updatecheckresult == 1:
+        need_to_restart = installer.run()
+        if need_to_restart:
             print("Please restart immediately!")
     os.remove(temp_filename)
     write_report(report)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
