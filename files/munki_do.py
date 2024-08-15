@@ -64,12 +64,14 @@ def main():
            help='An item to uninstall. May be specified multiple times.')
     p.add_option('--checkstate', action="append",
            help='Check the state of an item. May be specified multiple times.')
+    p.add_option('--force-catalog-update', '-f', action="store_true",
+              help='Force a check of the catalogs before proceeding.')
 
     options, arguments = p.parse_args()
     cataloglist = options.catalog or ['production']
     updatecheck.MACHINE = munkicommon.getMachineFacts()
     updatecheck.CONDITIONS = munkicommon.get_conditions()
-    if catalogs_older_than_30_mins(cataloglist):
+    if catalogs_older_than_30_mins(cataloglist) or options.force_catalog_update:
         updatecheck.catalogs.get_catalogs(cataloglist)
     report = reports.readreport()
     if options.checkstate:
