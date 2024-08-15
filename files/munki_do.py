@@ -44,16 +44,19 @@ def catalogs_older_than_30_mins(cataloglist):
             munkicommon.pref("ManagedInstallDir"), "catalogs", catalog
         )
         if not os.path.exists(catalogpath):
+            print("Catalog %s does not exist." % catalog)
             return True
         try:
             catalogstat = os.stat(catalogpath)
         except OSError:
+            print("Could not stat %s." % catalogpath)
             return True
         catalogage = datetime.datetime.fromtimestamp(catalogstat.st_mtime)
 
         diff = datetime.datetime.now() - catalogage
         # return true if the catalog is older than 30 minutes
         if diff.seconds > 1800:
+            print("Catalog %s is older than 30 minutes." % catalog)
             return True
     return False
 
@@ -98,8 +101,7 @@ def main():
     if catalogs_older_than_30_mins(cataloglist) or force_catalog_update:
         if force_catalog_update:
             print("Forcing catalog update...")
-        else:
-            print("Catalogs are older than 30 minutes, updating...")
+            
         updatecheck.catalogs.get_catalogs(cataloglist)
     report = reports.readreport()
     if options.checkstate:
