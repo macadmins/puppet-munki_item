@@ -37,6 +37,23 @@ def write_report(old_report=None):
         reports.report = old_report
     reports.savereport()
 
+def catalogs_older_than_30_mins(cataloglist):
+    for catalog in cataloglist:
+        catalogpath = os.path.join(munkicommon.pref('ManagedInstallDir'), 'catalogs', catalog)
+        if not os.path.exists(catalogpath):
+            return True
+        try:
+            catalogstat = os.stat(catalogpath)
+        except OSError:
+            return True
+        catalogage = datetime.datetime.fromtimestamp(catalogstat.st_mtime)
+
+        diff = datetime.datetime.now() - catalogage
+        # return true if the catalog is older than 30 minutes
+        if diff.seconds > 1800:
+            return True
+    return False
+
 def main():
     p = optparse.OptionParser()
     p.add_option('--catalog', '-c', action="append",
@@ -50,6 +67,10 @@ def main():
 
     options, arguments = p.parse_args()
     cataloglist = options.catalog or ['production']
+    updatecheck.MACHINE = munkicommon.getMachineFacts()
+    updatecheck.CONDITIONS = munkicommon.get_conditions()
+    if catalogs_older_than_30_mins(cataloglist):
+        updatecheck.catalogs.get_catalogs(cataloglist)
     report = reports.readreport()
     if options.checkstate:
         updatecheck.MACHINE = munkicommon.getMachineFacts()
