@@ -19,7 +19,6 @@ class munki_item {
     command     => '/usr/local/munki/update_catalog.py',
     logoutput   => false,
     refreshonly => false,
-    unless      => '/bin/true',
     require     => File['/usr/local/munki/update_catalog.py'],
   }
 }
