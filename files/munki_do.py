@@ -38,7 +38,9 @@ def get_formatted_date():
     formatted_date = now.strftime('%Y-%m-%d %H:%M:%S %z')
     return formatted_date
 
-def write_report():
+def write_report(old_report=None):
+    if old_report:
+        reports.report = old_report
     reports.report['StartTime'] = get_formatted_date()
     reports.report['RunType'] = "custom"
     reports.savereport()
@@ -56,7 +58,7 @@ def main():
 
     options, arguments = p.parse_args()
     cataloglist = options.catalog or ['production']
-
+    report = reports.readreport()
     if options.checkstate:
         write_report()
         updatecheck.MACHINE = munkicommon.getMachineFacts()
