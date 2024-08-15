@@ -31,6 +31,11 @@ from munkilib import installer
 from munkilib import munkicommon
 from munkilib import reports
 
+def write_report(old_report=None):
+    if old_report:
+        reports.report = old_report
+    reports.savereport()
+
 def main():
     p = optparse.OptionParser()
     p.add_option(
@@ -64,10 +69,6 @@ def main():
 
     report = reports.readreport()
     if options.checkstate:
-        updatecheck.MACHINE = munkicommon.getMachineFacts()
-        updatecheck.CONDITIONS = munkicommon.get_conditions()
-        if cataloglist != ["production"]:
-            updatecheck.catalogs.get_catalogs(cataloglist)
         for check_item in options.checkstate:
             exit_code = 2
             item_pl = updatecheck.catalogs.get_item_detail(check_item, cataloglist)
@@ -97,7 +98,6 @@ def main():
             print("Please restart immediately!")
     os.remove(temp_filename)
     write_report(report)
-
 
 if __name__ == "__main__":
     main()
