@@ -10,9 +10,6 @@ define munki_item::item (
     ensure  => $ensure,
     catalog => $catalog,
     force_catalog_update => $force_catalog_update,
-    require => [
-      File['/usr/local/munki/munki_do.py'], 
-      Exec['update_munki_catalog']
-    ],
+    require => File['/usr/local/munki/munki_do.py'],
   }
 }
