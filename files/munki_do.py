@@ -86,9 +86,10 @@ def main():
     cataloglist = options.catalog or ["production"]
     updatecheck.MACHINE = munkicommon.getMachineFacts()
     updatecheck.CONDITIONS = munkicommon.get_conditions()
-    if last_check_time_within_30_minutes():
+    if not last_check_time_within_30_minutes():
         print("Last check was within 30 minutes. Updating catalogs.")
         updatecheck.catalogs.get_catalogs(cataloglist)
+        write_last_check_time()
 
     report = reports.readreport()
     if options.checkstate:
