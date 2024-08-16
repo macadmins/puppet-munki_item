@@ -6,4 +6,10 @@ class munki_item {
     group  => '0',
     source => 'puppet:///modules/munki_item/munki_do.py',
   }
+
+  exec { 'run_munki':
+    command     => '/usr/local/munki/managedsoftwareupdate --auto',
+    path        => '/usr/bin:/bin:/usr/sbin:/sbin',
+    refreshonly => true,
+  }
 }
