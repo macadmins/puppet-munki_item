@@ -25,4 +25,4 @@ munki_item::item { 'Firefox':
 
 ## Credits
 
-The `munki_do.py` script is graciously provided by Greg Neagle and the Munki project.
+The `munki_do.py` script is graciously provided by [Greg Neagle](https://github.com/gregneagle).

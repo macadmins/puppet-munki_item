@@ -1,6 +1,6 @@
 define munki_item::item (
   $ensure = 'present',
-  $catalog = 'production',
+  $catalog = 'production'
 ) {
 
   include munki_item
@@ -9,5 +9,6 @@ define munki_item::item (
     ensure  => $ensure,
     catalog => $catalog,
     require => File['/usr/local/munki/munki_do.py'],
+    notify  => Exec['run_munki'],
   }
 }

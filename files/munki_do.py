@@ -17,62 +17,87 @@
 """
 munki_do
 """
+
 import optparse
 import os
 import tempfile
 import sys
 
+sys.path.append("/usr/local/munki")
+
 from munkilib import FoundationPlist
 from munkilib import updatecheck
 from munkilib import installer
 from munkilib import munkicommon
+from munkilib import reports
 
-p = optparse.OptionParser()
-p.add_option('--catalog', '-c', action="append",
-           help='Which catalog to consult. May be specified multiple times.')
-p.add_option('--install', '-i', action="append",
-           help='An item to install. May be specified multiple times.')
-p.add_option('--uninstall', '-u', action="append",
-           help='An item to uninstall. May be specified multiple times.')
-p.add_option('--checkstate', action="append",
-           help='Check the state of an item. May be specified multiple times.')
+def write_report(old_report=None):
+    if old_report:
+        reports.report = old_report
+    reports.savereport()
 
-options, arguments = p.parse_args()
-cataloglist = options.catalog or ['production']
+def main():
+    p = optparse.OptionParser()
+    p.add_option(
+        "--catalog",
+        "-c",
+        action="append",
+        help="Which catalog to consult. May be specified multiple times.",
+    )
+    p.add_option(
+        "--install",
+        "-i",
+        action="append",
+        help="An item to install. May be specified multiple times.",
+    )
+    p.add_option(
+        "--uninstall",
+        "-u",
+        action="append",
+        help="An item to uninstall. May be specified multiple times.",
+    )
+    p.add_option(
+        "--checkstate",
+        action="append",
+        help="Check the state of an item. May be specified multiple times.",
+    )
+    options, arguments = p.parse_args()
+    cataloglist = options.catalog or ["production"]
+    updatecheck.MACHINE = munkicommon.getMachineFacts()
+    updatecheck.CONDITIONS = munkicommon.get_conditions()
+    updatecheck.catalogs.get_catalogs(cataloglist)
 
-if options.checkstate:
-   updatecheck.MACHINE = munkicommon.getMachineFacts()
-   updatecheck.CONDITIONS = munkicommon.get_conditions()
-   updatecheck.catalogs.get_catalogs(cataloglist)
-   for check_item in options.checkstate:
-       installed_state = 'unknown'
-       item_pl = updatecheck.catalogs.get_item_detail(check_item, cataloglist)
-       if item_pl:
-           if updatecheck.installationstate.installed_state(item_pl):
-               installed_state = "installed"
-               exit_code = 0
-           else:
-               installed_state = "not installed"
-               exit_code = 1
-       print("%s: %s" % (check_item, installed_state))
-       sys.exit(exit_code)
+    report = reports.readreport()
+    if options.checkstate:
+        for check_item in options.checkstate:
+            exit_code = 2
+            item_pl = updatecheck.catalogs.get_item_detail(check_item, cataloglist)
+            if item_pl:
+                if updatecheck.installationstate.installed_state(item_pl):
+                    exit_code = 0
+                else:
+                    exit_code = 1
+            write_report(report)
+            sys.exit(exit_code)
 
-if not options.install and not options.uninstall:
-   sys.exit()
+    if not options.install and not options.uninstall:
+        sys.exit()
+    manifest = {}
+    manifest["catalogs"] = cataloglist
+    manifest["managed_installs"] = options.install or []
+    manifest["managed_uninstalls"] = options.uninstall or []
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_filename = temp_file.name
 
-manifest = {}
-manifest['catalogs'] = cataloglist
-manifest['managed_installs'] = options.install or []
-manifest['managed_uninstalls'] = options.uninstall or []
-with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-    temp_filename = temp_file.name
+    FoundationPlist.writePlist(manifest, temp_filename)
+    munkicommon.report["ManifestName"] = "munki_do_localmanifest"
+    updatecheckresult = updatecheck.check(localmanifestpath=temp_filename)
+    if updatecheckresult == 1:
+        need_to_restart = installer.run()
+        if need_to_restart:
+            print("Please restart immediately!")
+    os.remove(temp_filename)
+    write_report(report)
 
-FoundationPlist.writePlist(manifest, temp_filename)
-munkicommon.report['ManifestName'] = 'munki_do_localmanifest'
-updatecheckresult = updatecheck.check( 
-    localmanifestpath=temp_filename) 
-if updatecheckresult == 1: 
-  need_to_restart = installer.run() 
-  if need_to_restart: 
-    print("Please restart immediately!")
-os.remove(temp_filename)
+if __name__ == "__main__":
+    main()
