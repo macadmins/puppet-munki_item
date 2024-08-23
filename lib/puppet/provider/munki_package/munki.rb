@@ -4,6 +4,7 @@ Puppet::Type.type(:munki_package).provide(:munki) do
   commands :munki_do => '/usr/local/munki/munki_do.py'
 
   def exists?
+    return false if force_install == true
     system "/usr/local/munki/munki_do.py --checkstate #{resource[:name]} --catalog #{resource[:catalog]}"
     exit_code = $?.exitstatus
     if exit_code == 0

@@ -18,6 +18,11 @@ Puppet::Type.newtype(:munki_package) do
      defaultto 'production'
   end
 
+  newparam(:force_install) do
+    desc 'Whether to force install the package'
+    defaultto :false
+  end
+
 end
 
 

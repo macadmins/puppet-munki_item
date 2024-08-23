@@ -1,6 +1,7 @@
 define munki_item::item (
   $ensure = 'present',
   $catalog = 'production'
+  $force_install = false
 ) {
 
   include munki_item
