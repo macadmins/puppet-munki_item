@@ -8,8 +8,9 @@ This module provides a defined type for managing items in a Munki repository. Th
 
 
 munki_item::item { 'Firefox':
-  ensure  => 'present',
-  catalog => 'production,
+  ensure        => 'present',
+  catalog       => 'production,
+  force_install => false,
 }
 ```
 
@@ -18,6 +19,7 @@ munki_item::item { 'Firefox':
 * `name`: The name of the item to manage (this is also the name variabke for the resource).
 * `ensure`: Whether the item should be present or absent. Default: `present`.
 * `catalog`: The catalog to which the item should be retrieved from. Default: `production`.
+* `force_install`: Whether to force the installation of the item. Default: `false`.
 
 ## To Do
 
